@@ -1,0 +1,7 @@
+vstack
+    for val in state.items
+        if state.selected == val.id
+            text [foreground: "blue"] "> " val.text
+        else
+            text "  " val.text
+
