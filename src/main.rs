@@ -1,5 +1,5 @@
 use anathema::{
-    component::Component,
+    component::{Children, Component, Context, KeyCode, KeyEvent, UserEvent},
     prelude::{Backend, Document, TuiBackend},
     runtime::Runtime,
     state::{List, State, Value},
@@ -18,7 +18,7 @@ fn main() {
 
     let mut builder = Runtime::builder(doc, &backend);
     builder
-        .default::<()>("index", "templates/index.aml")
+        .default::<Application>("index", "templates/index.aml")
         .unwrap();
     builder
         .default::<ListBox>("list", "templates/listbox.aml")
@@ -26,6 +26,36 @@ fn main() {
     builder
         .finish(&mut backend, |mut runtime, backend| runtime.run(backend))
         .unwrap();
+}
+
+#[derive(Default)]
+struct Application;
+
+impl Component for Application {
+    type State = ();
+    type Message = ();
+
+    #[allow(unused_variables, unused_mut)]
+    fn on_mount(
+        &mut self,
+        state: &mut Self::State,
+        mut children: Children<'_, '_>,
+        mut context: Context<'_, '_, Self::State>,
+    ) {
+        context.components.nth(1).focus();
+    }
+
+    fn on_event(
+        &mut self,
+        event: &mut UserEvent<'_>,
+        state: &mut Self::State,
+        mut children: Children<'_, '_>,
+        mut context: Context<'_, '_, Self::State>,
+    ) {
+        if event.name() == "function_select" {
+            eprintln!("Got a select event for {}", event.data::<String>());
+        }
+    }
 }
 
 #[derive(State)]
@@ -43,7 +73,7 @@ impl Default for ListBoxState {
 impl ListBoxState {
     fn from(values: Vec<String>) -> Self {
         let mut items: Value<List<ListItem>> = List::empty().into();
-        let mut count: usize = 1;
+        let mut count: usize = 0;
 
         for value in values {
             items.push(ListItem {
@@ -54,7 +84,7 @@ impl ListBoxState {
         }
         Self {
             items,
-            selected: 1.into(),
+            selected: 0.into(),
         }
     }
 }
@@ -72,4 +102,39 @@ impl Component for ListBox {
     type State = ListBoxState;
 
     type Message = ();
+
+    fn on_key(
+        &mut self,
+        key: KeyEvent,
+        state: &mut Self::State,
+        mut children: Children<'_, '_>,
+        mut context: Context<'_, '_, Self::State>,
+    ) {
+        let mut selected = state.selected.to_mut();
+        match key.code {
+            KeyCode::Char('j') => {
+                if *selected < state.items.len() - 1 {
+                    *selected += 1
+                }
+            }
+            KeyCode::Char('k') => {
+                if *selected > 0 {
+                    *selected -= 1
+                }
+            }
+            KeyCode::Enter => {
+                context.publish(
+                    "select",
+                    state
+                        .items
+                        .get(*selected)
+                        .expect("the id and the index have gone out of sync.")
+                        .text
+                        .to_ref()
+                        .clone(),
+                );
+            }
+            _ => (),
+        }
+    }
 }
