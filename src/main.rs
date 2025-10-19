@@ -24,7 +24,7 @@ fn main() {
         .default::<ListBox>("list", "templates/listbox.aml")
         .unwrap();
     builder
-        .finish(&mut backend, |mut runtime, backend| runtime.run(backend))
+        .finish(&mut backend, |runtime, backend| runtime.run(backend))
         .unwrap();
 }
 
@@ -49,8 +49,8 @@ impl Component for Application {
         &mut self,
         event: &mut UserEvent<'_>,
         state: &mut Self::State,
-        mut children: Children<'_, '_>,
-        mut context: Context<'_, '_, Self::State>,
+        children: Children<'_, '_>,
+        context: Context<'_, '_, Self::State>,
     ) {
         if event.name() == "function_select" {
             eprintln!("Got a select event for {}", event.data::<String>());
@@ -107,7 +107,7 @@ impl Component for ListBox {
         &mut self,
         key: KeyEvent,
         state: &mut Self::State,
-        mut children: Children<'_, '_>,
+        children: Children<'_, '_>,
         mut context: Context<'_, '_, Self::State>,
     ) {
         let mut selected = state.selected.to_mut();
