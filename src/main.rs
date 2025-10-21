@@ -4,8 +4,45 @@ use anathema::{
     runtime::Runtime,
     state::{List, State, Value},
 };
+use ctor::ctor;
+
+use std::{
+    collections::HashMap,
+    sync::{Mutex, OnceLock},
+};
+
+// === Registry ===
+static REGISTRY: OnceLock<Mutex<HashMap<&'static str, fn() -> String>>> = OnceLock::new();
+// === End Registry ===
 
 fn main() {
+    let map = REGISTRY
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .unwrap();
+    for (name, func) in map.iter() {
+        println!("Function {name} returned {}.", func());
+    }
+    //show_menu();
+}
+
+#[ctor]
+fn register_test_function_1() {
+    REGISTRY
+        .get_or_init(|| Mutex::new(HashMap::new()))
+        .lock()
+        .unwrap()
+        .insert("Test Function 1", test_function_1);
+}
+pub fn test_function_1() -> String {
+    String::from("Hello folks!")
+}
+
+pub fn test_function_2() -> String {
+    String::from("Hello folks!")
+}
+
+fn show_menu() {
     let doc = Document::new("@index");
 
     let mut backend = TuiBackend::builder()
@@ -48,9 +85,9 @@ impl Component for Application {
     fn on_event(
         &mut self,
         event: &mut UserEvent<'_>,
-        state: &mut Self::State,
-        children: Children<'_, '_>,
-        context: Context<'_, '_, Self::State>,
+        _state: &mut Self::State,
+        _children: Children<'_, '_>,
+        _context: Context<'_, '_, Self::State>,
     ) {
         if event.name() == "function_select" {
             eprintln!("Got a select event for {}", event.data::<String>());
@@ -107,7 +144,7 @@ impl Component for ListBox {
         &mut self,
         key: KeyEvent,
         state: &mut Self::State,
-        children: Children<'_, '_>,
+        _children: Children<'_, '_>,
         mut context: Context<'_, '_, Self::State>,
     ) {
         let mut selected = state.selected.to_mut();

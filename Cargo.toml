@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 anathema = { git = "https://github.com/togglebyte/anathema/" }
+ctor = "0.6.0"
 
