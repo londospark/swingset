@@ -40,7 +40,7 @@ pub fn show_menu() {
         .default::<ListBox>("list", "templates/listbox.aml")
         .unwrap();
     builder
-        .finish(&mut backend, |runtime, backend| runtime.run(backend))
+        .finish(&mut backend, anathema::prelude::Runtime::run)
         .unwrap();
 }
 
@@ -138,12 +138,12 @@ impl Component for ListBox {
         match key.code {
             KeyCode::Char('j') => {
                 if *selected < state.items.len() - 1 {
-                    *selected += 1
+                    *selected += 1;
                 }
             }
             KeyCode::Char('k') => {
                 if *selected > 0 {
-                    *selected -= 1
+                    *selected -= 1;
                 }
             }
             KeyCode::Enter => {
