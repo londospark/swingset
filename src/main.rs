@@ -8,38 +8,38 @@ use ctor::ctor;
 
 use std::{
     collections::HashMap,
-    sync::{Mutex, OnceLock},
+    sync::{Mutex, MutexGuard, OnceLock},
 };
 
 // === Registry ===
 static REGISTRY: OnceLock<Mutex<HashMap<&'static str, fn() -> String>>> = OnceLock::new();
-// === End Registry ===
 
-fn main() {
-    let map = REGISTRY
-        .get_or_init(|| Mutex::new(HashMap::new()))
-        .lock()
-        .unwrap();
-    for (name, func) in map.iter() {
-        println!("Function {name} returned {}.", func());
-    }
-    //show_menu();
-}
-
-#[ctor]
-fn register_test_function_1() {
+fn get_registry() -> MutexGuard<'static, HashMap<&'static str, fn() -> String>> {
     REGISTRY
         .get_or_init(|| Mutex::new(HashMap::new()))
         .lock()
         .unwrap()
-        .insert("Test Function 1", test_function_1);
+}
+// === End Registry ===
+
+fn main() {
+    show_menu();
+}
+
+#[ctor]
+fn register_test_function_1() {
+    get_registry().insert("Test Function 1", test_function_1);
 }
 pub fn test_function_1() -> String {
     String::from("Hello folks!")
 }
 
+#[ctor]
+fn register_test_function_2() {
+    get_registry().insert("Test Function 2", test_function_1);
+}
 pub fn test_function_2() -> String {
-    String::from("Hello folks!")
+    String::from("Hello folks from test 2!")
 }
 
 fn show_menu() {
@@ -95,7 +95,7 @@ impl Component for Application {
     }
 }
 
-#[derive(State)]
+#[derive(State, Debug)]
 struct ListBoxState {
     items: Value<List<ListItem>>,
     selected: Value<usize>,
@@ -103,19 +103,23 @@ struct ListBoxState {
 
 impl Default for ListBoxState {
     fn default() -> Self {
-        ListBoxState::from(vec!["Florp".into(), "Blerp".into(), "Lark".into()])
+        ListBoxState::from(get_registry().keys())
     }
 }
 
 impl ListBoxState {
-    fn from(values: Vec<String>) -> Self {
+    fn from<'a, T>(values: T) -> Self
+    where
+        T: IntoIterator<Item = &'a &'a str>,
+        T: std::fmt::Debug,
+    {
         let mut items: Value<List<ListItem>> = List::empty().into();
         let mut count: usize = 0;
 
         for value in values {
             items.push(ListItem {
                 id: count.into(),
-                text: value.into(),
+                text: String::from(*value).into(),
             });
             count += 1;
         }
@@ -126,7 +130,7 @@ impl ListBoxState {
     }
 }
 
-#[derive(State)]
+#[derive(State, Debug)]
 struct ListItem {
     id: Value<usize>,
     text: Value<String>,
