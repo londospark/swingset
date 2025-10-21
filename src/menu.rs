@@ -10,10 +10,12 @@ use std::{
     sync::{Mutex, MutexGuard, OnceLock},
 };
 
-// === Registry ===
-static REGISTRY: OnceLock<Mutex<HashMap<&'static str, fn() -> String>>> = OnceLock::new();
+type Registry = HashMap<&'static str, fn() -> String>;
 
-pub fn get_registry() -> MutexGuard<'static, HashMap<&'static str, fn() -> String>> {
+// === Registry ===
+static REGISTRY: OnceLock<Mutex<Registry>> = OnceLock::new();
+
+pub fn get_registry() -> MutexGuard<'static, Registry> {
     REGISTRY
         .get_or_init(|| Mutex::new(HashMap::new()))
         .lock()
@@ -97,14 +99,12 @@ impl ListBoxState {
         T: std::fmt::Debug,
     {
         let mut items: Value<List<ListItem>> = List::empty().into();
-        let mut count: usize = 0;
 
-        for value in values {
+        for (count, value) in values.into_iter().enumerate() {
             items.push(ListItem {
                 id: count.into(),
                 text: String::from(*value).into(),
             });
-            count += 1;
         }
         Self {
             items,
