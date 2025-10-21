@@ -36,7 +36,7 @@ pub fn test_function_1() -> String {
 
 #[ctor]
 fn register_test_function_2() {
-    get_registry().insert("Test Function 2", test_function_1);
+    get_registry().insert("Test Function 2", test_function_2);
 }
 pub fn test_function_2() -> String {
     String::from("Hello folks from test 2!")
@@ -90,7 +90,11 @@ impl Component for Application {
         _context: Context<'_, '_, Self::State>,
     ) {
         if event.name() == "function_select" {
-            eprintln!("Got a select event for {}", event.data::<String>());
+            let key = event.data::<String>();
+            eprintln!(
+                "Function '{key}' gave '{}'",
+                get_registry().get(key.as_str()).unwrap()()
+            );
         }
     }
 }
