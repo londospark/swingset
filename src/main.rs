@@ -12,7 +12,7 @@ fn main() {
 fn register_test_function_1() {
     get_registry().insert("Test Function 1", test_function_1);
 }
-#[must_use] 
+#[must_use]
 pub fn test_function_1() -> String {
     String::from("Hello folks!")
 }
@@ -21,7 +21,7 @@ pub fn test_function_1() -> String {
 fn register_test_function_2() {
     get_registry().insert("Test Function 2", test_function_2);
 }
-#[must_use] 
+#[must_use]
 pub fn test_function_2() -> String {
     String::from("Hello folks from test 2!")
 }
