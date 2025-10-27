@@ -1,7 +1,9 @@
-vstack
-    for val in state.items
-        if state.selected == val.id
-            text [foreground: "blue"] "> " val.text "  "
-        else
-            text "  " val.text "  "
+padding [right: 1]
+    vstack
+        for val in state.items
+            if state.selected == val.id
+                text [foreground: THEME.active_fg] "> " val.text
+            else
+                padding [left: 2]
+                    text [foreground: THEME.inactive_fg] val.text
 
