@@ -1,3 +1,8 @@
+global THEME = {
+    active_fg: "yellow",
+    inactive_fg: "dark_grey",
+}
+
 align [alignment: "center"]
     border
         @list (select->function_select)
